@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FootMystery - LDC Edition</title>
+    <style>
+        :root { --neon: #64ffda; --bg: #020c1b; --card: #112240; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; text-align: center; padding: 20px; margin: 0; }
+        .container { max-width: 500px; margin: 0 auto; }
+        
+        .header { margin-bottom: 30px; }
+        h1 { color: var(--neon); font-size: 1.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
+        .stats { display: flex; justify-content: space-around; background: var(--card); padding: 10px; border-radius: 15px; border: 1px solid #233554; }
+
+        .career-path { margin: 30px 0; display: flex; flex-direction: column; gap: 12px; }
+        .club-card { 
+            background: var(--card); border-left: 4px solid var(--neon); padding: 15px; border-radius: 8px; 
+            display: flex; justify-content: space-between; align-items: center;
+            animation: fadeIn 0.5s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .club-years { color: #8892b0; font-weight: bold; font-family: monospace; }
+        .club-name { font-size: 1.1rem; font-weight: 500; }
+
+        .input-zone { position: relative; margin-top: 25px; }
+        input { 
+            padding: 18px; border-radius: 15px; border: 2px solid #233554; width: 90%; 
+            font-size: 16px; background: #0a192f; color: white; outline: none; transition: 0.3s;
+        }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 15px rgba(100, 255, 218, 0.2); }
+
+        .suggestions { 
+            position: absolute; left: 5%; right: 5%; z-index: 10; background: white; 
+            border-radius: 10px; margin-top: 5px; overflow: hidden; color: #020c1b; 
+        }
+        .suggestion-item { padding: 12px; cursor: pointer; text-align: left; border-bottom: 1px solid #eee; }
+        .suggestion-item:hover { background: var(--neon); }
+
+        .controls { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
+        .btn { 
+            padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; 
+            transition: 0.2s; font-size: 1rem;
+        }
+        .btn-reveal { background: #1d3359; color: var(--neon); border: 1px solid var(--neon); }
+        .btn-hint { background: #f4b400; color: #020c1b; }
+        
+        #message { height: 40px; margin-top: 15px; font-weight: bold; font-size: 1.2rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>⚽ Foot Mystery</h1>
+        <div class="stats">
+            <div>Score: <span id="scoreVal" style="color:var(--neon)">0</span></div>
+            <div>Difficulté: <span id="pointsVal">10</span> pts</div>
+        </div>
+    </div>
+
+    <div class="career-path" id="careerPath"></div>
+
+    <div class="controls">
+        <button class="btn btn-reveal" id="revealBtn" onclick="revealNextClub()">🔍 Révéler club suivant (-2 pts)</button>
+        <button class="btn btn-hint" onclick="showHint()">💡 Indice Nationalité (-3 pts)</button>
+    </div>
+
+    <div class="input-zone">
+        <input type="text" id="userInput" placeholder="Qui est-ce ?" autocomplete="off">
+        <div id="suggestions" class="suggestions"></div>
+    </div>
+
+    <div id="message"></div>
+</div>
+
+<script>
+    // Base de données (On pourra l'étendre à 300)
+    const playersDatabase = [
+        { name: "Zinedine Zidane", nation: "Français 🇫🇷", career: [{c: "Cannes", y: "1988-92"}, {c: "Bordeaux", y: "1992-96"}, {c: "Juventus", y: "1996-01"}, {c: "Real Madrid", y: "2001-06"}] },
+        { name: "Cristiano Ronaldo", nation: "Portugais 🇵🇹", career: [{c: "Sporting CP", y: "2002-03"}, {c: "Man United", y: "2003-09"}, {c: "Real Madrid", y: "2009-18"}, {c: "Juventus", y: "2018-21"}] },
+        { name: "Didier Drogba", nation: "Ivoirien 🇨🇮", career: [{c: "Le Mans", y: "1998-02"}, {c: "Guingamp", y: "2002-03"}, {c: "Marseille", y: "2003-04"}, {c: "Chelsea", y: "2004-12"}] },
+        { name: "Luka Modric", nation: "Croate 🇭🇷", career: [{c: "D. Zagreb", y: "2003-08"}, {c: "Tottenham", y: "2008-12"}, {c: "Real Madrid", y: "2012-26"}] },
+        { name: "Erling Haaland", nation: "Norvégien 🇳🇴", career: [{c: "Molde", y: "2017-18"}, {c: "Salzbourg", y: "2019-20"}, {c: "Dortmund", y: "2020-22"}, {c: "Man City", y: "2022-26"}] }
+    ];
+
+    let currentIdx = 0;
+    let revealedCount = 1;
+    let score = 0;
+    let currentPoints = 10;
+
+    function initGame() {
+        currentIdx = Math.floor(Math.random() * playersDatabase.length);
+        revealedCount = 1;
+        currentPoints = 10;
+        updateUI();
+    }
+
+    function updateUI() {
+        const player = playersDatabase[currentIdx];
+        const path = document.getElementById('careerPath');
+        path.innerHTML = '';
+        document.getElementById('message').innerText = '';
+        document.getElementById('userInput').value = '';
+        document.getElementById('pointsVal').innerText = currentPoints;
+        
+        // On n'affiche que les clubs révélés
+        for(let i=0; i < revealedCount; i++) {
+            const club = player.career[i];
+            path.innerHTML += `
+                <div class="club-card">
+                    <span class="club-years">${club.y}</span>
+                    <span class="club-name">${club.c}</span>
+                </div>`;
+        }
+        
+        // Cacher le bouton si tout est révélé
+        document.getElementById('revealBtn').style.display = (revealedCount < player.career.length) ? "block" : "none";
+    }
+
+    function revealNextClub() {
+        if (revealedCount < playersDatabase[currentIdx].career.length) {
+            revealedCount++;
+            currentPoints -= 2;
+            updateUI();
+        }
+    }
+
+    function showHint() {
+        document.getElementById('message').innerHTML = `<span style="color:#f4b400">📍 Nation : ${playersDatabase[currentIdx].nation}</span>`;
+        currentPoints -= 3;
+        document.getElementById('pointsVal').innerText = currentPoints;
+    }
+
+    const input = document.getElementById('userInput');
+    const suggBox = document.getElementById('suggestions');
+
+    input.addEventListener('input', () => {
+        const val = input.value.toLowerCase();
+        suggBox.innerHTML = '';
+        if (val.length < 2) return;
+
+        const matches = playersDatabase.filter(p => p.name.toLowerCase().includes(val));
+        matches.forEach(m => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.innerText = m.name;
+            div.onclick = () => {
+                input.value = m.name;
+                suggBox.innerHTML = '';
+                checkAnswer();
+            };
+            suggBox.appendChild(div);
+        });
+    });
+
+    function checkAnswer() {
+        if (input.value.toLowerCase().trim() === playersDatabase[currentIdx].name.toLowerCase()) {
+            document.getElementById('message').innerHTML = "✅ BUUUUT ! +" + currentPoints + " pts";
+            document.getElementById('message').style.color = "#64ffda";
+            score += currentPoints;
+            document.getElementById('scoreVal').innerText = score;
+            setTimeout(initGame, 2000);
+        }
+    }
+
+    window.onload = initGame;
+</script>
+
+</body>
+</html>
