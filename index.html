@@ -3,170 +3,220 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FootMystery - LDC Edition</title>
+    <title>Foot Mystery PRO - Ultimate Edition</title>
     <style>
-        :root { --neon: #64ffda; --bg: #020c1b; --card: #112240; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; text-align: center; padding: 20px; margin: 0; }
-        .container { max-width: 500px; margin: 0 auto; }
+        :root { --neon: #64ffda; --bg: #020c1b; --card: #112240; --text: #ccd6f6; --red: #ff4d4d; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 15px; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 450px; }
         
-        .header { margin-bottom: 30px; }
-        h1 { color: var(--neon); font-size: 1.8rem; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 2px; }
-        .stats { display: flex; justify-content: space-around; background: var(--card); padding: 10px; border-radius: 15px; border: 1px solid #233554; }
+        /* DESIGN ACCUEIL / FIN */
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 1000; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .hero-title { font-size: 2.5rem; color: var(--neon); text-shadow: 0 0 15px rgba(100, 255, 218, 0.3); margin-bottom: 5px; }
+        .hero-sub { color: #8892b0; margin-bottom: 30px; font-weight: 300; }
+        
+        /* BOUTON START NÉON */
+        .btn-start { background: transparent; color: var(--neon); border: 2px solid var(--neon); padding: 15px 50px; font-size: 1.2rem; border-radius: 50px; cursor: pointer; transition: 0.3s; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        .btn-start:hover { background: rgba(100, 255, 218, 0.1); box-shadow: 0 0 20px rgba(100, 255, 218, 0.2); }
 
-        .career-path { margin: 30px 0; display: flex; flex-direction: column; gap: 12px; }
-        .club-card { 
-            background: var(--card); border-left: 4px solid var(--neon); padding: 15px; border-radius: 8px; 
-            display: flex; justify-content: space-between; align-items: center;
-            animation: fadeIn 0.5s ease;
-        }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        /* INTERFACE JEU */
+        .stats { display: flex; gap: 10px; margin-bottom: 20px; }
+        .stat-card { background: var(--card); flex: 1; padding: 12px; border-radius: 15px; border: 1px solid #233554; text-align: center; }
+        .stat-label { font-size: 0.65rem; color: #8892b0; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-val { font-size: 1.2rem; font-weight: bold; color: var(--neon); }
 
-        .club-years { color: #8892b0; font-weight: bold; font-family: monospace; }
-        .club-name { font-size: 1.1rem; font-weight: 500; }
+        .career-path { display: flex; flex-direction: column; gap: 10px; min-height: 300px; margin-bottom: 20px; }
+        .club-row { background: var(--card); padding: 15px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border-left: 5px solid var(--neon); animation: slideIn 0.3s ease forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-15px); } to { opacity: 1; transform: translateX(0); } }
+        .years { font-family: 'Roboto Mono', monospace; color: #8892b0; font-size: 0.9rem; }
+        .club-name { font-weight: 600; font-size: 1.05rem; }
 
-        .input-zone { position: relative; margin-top: 25px; }
-        input { 
-            padding: 18px; border-radius: 15px; border: 2px solid #233554; width: 90%; 
-            font-size: 16px; background: #0a192f; color: white; outline: none; transition: 0.3s;
-        }
-        input:focus { border-color: var(--neon); box-shadow: 0 0 15px rgba(100, 255, 218, 0.2); }
+        .input-wrapper { position: relative; margin-bottom: 15px; }
+        input { width: 100%; padding: 18px; border-radius: 15px; border: 2px solid #233554; background: #0a192f; color: white; font-size: 1rem; box-sizing: border-box; outline: none; transition: 0.3s; }
+        input:focus { border-color: var(--neon); box-shadow: 0 0 10px rgba(100, 255, 218, 0.1); }
 
-        .suggestions { 
-            position: absolute; left: 5%; right: 5%; z-index: 10; background: white; 
-            border-radius: 10px; margin-top: 5px; overflow: hidden; color: #020c1b; 
-        }
-        .suggestion-item { padding: 12px; cursor: pointer; text-align: left; border-bottom: 1px solid #eee; }
-        .suggestion-item:hover { background: var(--neon); }
+        .sugg-box { position: absolute; bottom: 100%; left: 0; width: 100%; background: white; color: black; border-radius: 12px; display: none; z-index: 500; box-shadow: 0 -5px 25px rgba(0,0,0,0.4); max-height: 220px; overflow-y: auto; }
+        .sugg-item { padding: 15px; border-bottom: 1px solid #eee; cursor: pointer; font-weight: bold; }
+        .sugg-item:hover { background: #f4f4f4; }
 
-        .controls { margin-top: 20px; display: flex; flex-direction: column; gap: 10px; }
-        .btn { 
-            padding: 12px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; 
-            transition: 0.2s; font-size: 1rem;
-        }
+        /* BOUTONS ACTIONS */
+        .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+        .btn { padding: 14px; border-radius: 12px; border: none; font-weight: bold; cursor: pointer; transition: 0.2s; font-size: 0.8rem; }
         .btn-reveal { background: #1d3359; color: var(--neon); border: 1px solid var(--neon); }
         .btn-hint { background: #f4b400; color: #020c1b; }
-        
-        #message { height: 40px; margin-top: 15px; font-weight: bold; font-size: 1.2rem; }
+        .btn-skip { background: #333; color: #ccc; }
+        .btn:hover { filter: brightness(1.2); }
+
+        #msg { margin-top: 15px; font-weight: 600; min-height: 24px; color: var(--neon); text-align: center; font-size: 1.1rem; }
     </style>
 </head>
 <body>
 
+<div id="startUI" class="overlay">
+    <h1 class="hero-title">FOOT MYSTERY</h1>
+    <p class="hero-sub">Saurez-vous tous les reconnaître ?</p>
+    <button class="btn-start" onclick="initGame()">Commencer</button>
+</div>
+
+<div id="endUI" class="overlay" style="display:none">
+    <h1 class="hero-title">TERMINÉ !</h1>
+    <p style="color:#8892b0">Score Final</p>
+    <div id="finalScore" style="font-size:4rem; color:var(--neon); margin: 10px 0;">0</div>
+    <button class="btn-start" onclick="location.reload()">Rejouer</button>
+</div>
+
 <div class="container">
-    <div class="header">
-        <h1>⚽ Foot Mystery</h1>
-        <div class="stats">
-            <div>Score: <span id="scoreVal" style="color:var(--neon)">0</span></div>
-            <div>Difficulté: <span id="pointsVal">10</span> pts</div>
-        </div>
+    <div class="stats">
+        <div class="stat-card"><div class="stat-label">Temps</div><div id="timer" class="stat-val">60s</div></div>
+        <div class="stat-card"><div class="stat-label">Score</div><div id="score" class="stat-val">0</div></div>
+        <div class="stat-card"><div class="stat-label">Points</div><div id="currentPts" class="stat-val">10</div></div>
     </div>
 
-    <div class="career-path" id="careerPath"></div>
+    <div id="careerDisplay" class="career-path"></div>
 
-    <div class="controls">
-        <button class="btn btn-reveal" id="revealBtn" onclick="revealNextClub()">🔍 Révéler club suivant (-2 pts)</button>
-        <button class="btn btn-hint" onclick="showHint()">💡 Indice Nationalité (-3 pts)</button>
+    <div class="input-wrapper">
+        <div id="suggDisplay" class="sugg-box"></div>
+        <input type="text" id="playerInput" placeholder="Écris le nom du joueur..." autocomplete="off">
     </div>
 
-    <div class="input-zone">
-        <input type="text" id="userInput" placeholder="Qui est-ce ?" autocomplete="off">
-        <div id="suggestions" class="suggestions"></div>
+    <div class="actions">
+        <button class="btn btn-reveal" onclick="revealClub()">+ CLUBS</button>
+        <button class="btn btn-hint" onclick="showNation()">NATION</button>
+        <button class="btn btn-skip" onclick="skipPlayer()">PASSER</button>
     </div>
-
-    <div id="message"></div>
+    <div id="msg"></div>
 </div>
 
 <script>
-    // Base de données (On pourra l'étendre à 300)
-    const playersDatabase = [
-        { name: "Zinedine Zidane", nation: "Français 🇫🇷", career: [{c: "Cannes", y: "1988-92"}, {c: "Bordeaux", y: "1992-96"}, {c: "Juventus", y: "1996-01"}, {c: "Real Madrid", y: "2001-06"}] },
-        { name: "Cristiano Ronaldo", nation: "Portugais 🇵🇹", career: [{c: "Sporting CP", y: "2002-03"}, {c: "Man United", y: "2003-09"}, {c: "Real Madrid", y: "2009-18"}, {c: "Juventus", y: "2018-21"}] },
-        { name: "Didier Drogba", nation: "Ivoirien 🇨🇮", career: [{c: "Le Mans", y: "1998-02"}, {c: "Guingamp", y: "2002-03"}, {c: "Marseille", y: "2003-04"}, {c: "Chelsea", y: "2004-12"}] },
-        { name: "Luka Modric", nation: "Croate 🇭🇷", career: [{c: "D. Zagreb", y: "2003-08"}, {c: "Tottenham", y: "2008-12"}, {c: "Real Madrid", y: "2012-26"}] },
-        { name: "Erling Haaland", nation: "Norvégien 🇳🇴", career: [{c: "Molde", y: "2017-18"}, {c: "Salzbourg", y: "2019-20"}, {c: "Dortmund", y: "2020-22"}, {c: "Man City", y: "2022-26"}] }
+    const players = [
+        { name: "Zinedine Zidane", nation: "Français 🇫🇷", career: [{c: "Cannes", y: "1988-1992"}, {c: "Bordeaux", y: "1992-1996"}, {c: "Juventus", y: "1996-2001"}, {c: "Real Madrid", y: "2001-2006"}] },
+        { name: "Cristiano Ronaldo", nation: "Portugais 🇵🇹", career: [{c: "Sporting CP", y: "2002-2003"}, {c: "Man United", y: "2003-2009"}, {c: "Real Madrid", y: "2009-2018"}, {c: "Juventus", y: "2018-2021"}] },
+        { name: "Lionel Messi", nation: "Argentin 🇦🇷", career: [{c: "Barcelone", y: "2004-2021"}, {c: "Paris SG", y: "2021-2023"}, {c: "Inter Miami", y: "2023-"}] },
+        { name: "Ronaldinho", nation: "Brésilien 🇧🇷", career: [{c: "PSG", y: "2001-2003"}, {c: "Barcelone", y: "2003-2008"}, {c: "AC Milan", y: "2008-2011"}] },
+        { name: "Kylian Mbappé", nation: "Français 🇫🇷", career: [{c: "Monaco", y: "2015-2017"}, {c: "Paris SG", y: "2017-2024"}, {c: "Real Madrid", y: "2024-"}] },
+        { name: "Karim Benzema", nation: "Français 🇫🇷", career: [{c: "Lyon", y: "2004-2009"}, {c: "Real Madrid", y: "2009-2023"}] },
+        { name: "Erling Haaland", nation: "Norvégien 🇳🇴", career: [{c: "RB Salzbourg", y: "2019-2020"}, {c: "Dortmund", y: "2020-2022"}, {c: "Man City", y: "2022-"}] },
+        { name: "Robert Lewandowski", nation: "Polonais 🇵🇱", career: [{c: "Dortmund", y: "2010-2014"}, {c: "Bayern Munich", y: "2014-2022"}, {c: "Barcelone", y: "2022-"}] },
+        { name: "Luis Suarez", nation: "Uruguayen 🇺🇾", career: [{c: "Ajax", y: "2007-2011"}, {c: "Liverpool", y: "2011-2014"}, {c: "Barcelone", y: "2014-2020"}, {c: "Atlético", y: "2020-2022"}] },
+        { name: "Neymar Jr", nation: "Brésilien 🇧🇷", career: [{c: "Santos", y: "2009-2013"}, {c: "Barcelone", y: "2013-2017"}, {c: "Paris SG", y: "2017-2023"}] },
+        { name: "Antoine Griezmann", nation: "Français 🇫🇷", career: [{c: "Sociedad", y: "2009-2014"}, {c: "Atlético", y: "2014-2019"}, {c: "Barcelone", y: "2019-2021"}] },
+        { name: "Luka Modric", nation: "Croate 🇭🇷", career: [{c: "Tottenham", y: "2008-2012"}, {c: "Real Madrid", y: "2012-"}] },
+        { name: "Mohamed Salah", nation: "Égyptien 🇪🇬", career: [{c: "Bâle", y: "2012-2014"}, {c: "AS Rome", y: "2015-2017"}, {c: "Liverpool", y: "2017-"}] },
+        { name: "Zlatan Ibrahimovic", nation: "Suédois 🇸🇪", career: [{c: "Inter", y: "2006-2009"}, {c: "Barcelone", y: "2009-2010"}, {c: "AC Milan", y: "2010-2012"}, {c: "PSG", y: "2012-2016"}] },
+        { name: "Eden Hazard", nation: "Belge 🇧🇪", career: [{c: "Lille", y: "2007-2012"}, {c: "Chelsea", y: "2012-2019"}, {c: "Real Madrid", y: "2019-2023"}] },
+        { name: "Sergio Ramos", nation: "Espagnol 🇪🇸", career: [{c: "Séville", y: "2003-2005"}, {c: "Real Madrid", y: "2005-2021"}, {c: "Paris SG", y: "2021-2023"}] },
+        { name: "Toni Kroos", nation: "Allemand 🇩🇪", career: [{c: "Bayern", y: "2007-2014"}, {c: "Real Madrid", y: "2014-2024"}] },
+        { name: "Paul Pogba", nation: "Français 🇫🇷", career: [{c: "Juventus", y: "2012-2016"}, {c: "Man United", y: "2016-2022"}, {c: "Juventus", y: "2022-"}] },
+        { name: "Thierry Henry", nation: "Français 🇫🇷", career: [{c: "Monaco", y: "1994-1999"}, {c: "Arsenal", y: "1999-2007"}, {c: "Barcelone", y: "2007-2010"}] },
+        { name: "Wayne Rooney", nation: "Anglais 🏴󠁧󠁢󠁥󠁮󠁧󠁿", career: [{c: "Everton", y: "2002-2004"}, {c: "Man United", y: "2004-2017"}] },
+        { name: "Harry Kane", nation: "Anglais 🏴󠁧󠁢󠁥󠁮󠁧󠁿", career: [{c: "Tottenham", y: "2009-2023"}, {c: "Bayern Munich", y: "2023-"}] },
+        { name: "Kevin De Bruyne", nation: "Belge 🇧🇪", career: [{c: "Genk", y: "2008-2012"}, {c: "Wolfsburg", y: "2014-2015"}, {c: "Man City", y: "2015-"}] },
+        { name: "Lamine Yamal", nation: "Espagnol 🇪🇸", career: [{c: "Barcelone", y: "2023-"}] },
+        { name: "Vinícius Jr", nation: "Brésilien 🇧🇷", career: [{c: "Flamengo", y: "2017-2018"}, {c: "Real Madrid", y: "2018-"}] },
+        { name: "N'Golo Kanté", nation: "Français 🇫🇷", career: [{c: "Caen", y: "2013-2015"}, {c: "Leicester", y: "2015-2016"}, {c: "Chelsea", y: "2016-2023"}] }
     ];
 
-    let currentIdx = 0;
-    let revealedCount = 1;
-    let score = 0;
-    let currentPoints = 10;
+    let currentStack = [], currentPlayer = {}, revealedClubs = 1, totalScore = 0, pointsPerPlayer = 10, timeLeft = 60, gameActive = false, timerInterval;
 
     function initGame() {
-        currentIdx = Math.floor(Math.random() * playersDatabase.length);
-        revealedCount = 1;
-        currentPoints = 10;
-        updateUI();
-    }
-
-    function updateUI() {
-        const player = playersDatabase[currentIdx];
-        const path = document.getElementById('careerPath');
-        path.innerHTML = '';
-        document.getElementById('message').innerText = '';
-        document.getElementById('userInput').value = '';
-        document.getElementById('pointsVal').innerText = currentPoints;
+        document.getElementById('startUI').style.display = 'none';
+        gameActive = true;
+        totalScore = 0;
+        timeLeft = 60;
+        currentStack = [...players].sort(() => Math.random() - 0.5);
+        nextPlayer();
         
-        // On n'affiche que les clubs révélés
-        for(let i=0; i < revealedCount; i++) {
-            const club = player.career[i];
-            path.innerHTML += `
-                <div class="club-card">
-                    <span class="club-years">${club.y}</span>
-                    <span class="club-name">${club.c}</span>
-                </div>`;
+        timerInterval = setInterval(() => {
+            timeLeft--;
+            document.getElementById('timer').innerText = timeLeft + "s";
+            if(timeLeft <= 0) {
+                clearInterval(timerInterval);
+                gameActive = false;
+                document.getElementById('endUI').style.display = 'flex';
+                document.getElementById('finalScore').innerText = totalScore;
+            }
+        }, 1000);
+    }
+
+    function nextPlayer() {
+        if(!gameActive) return;
+        if(currentStack.length === 0) currentStack = [...players].sort(() => Math.random() - 0.5);
+        currentPlayer = currentStack.shift();
+        revealedClubs = 1; 
+        pointsPerPlayer = 10;
+        updateDisplay();
+    }
+
+    function updateDisplay() {
+        const display = document.getElementById('careerDisplay');
+        display.innerHTML = '';
+        document.getElementById('playerInput').value = '';
+        document.getElementById('msg').innerText = '';
+        document.getElementById('currentPts').innerText = pointsPerPlayer;
+        document.getElementById('score').innerText = totalScore;
+        for(let i=0; i<revealedClubs; i++) {
+            const c = currentPlayer.career[i];
+            display.innerHTML += `<div class="club-row"><span class="years">${c.y}</span><span class="club-name">${c.c}</span></div>`;
         }
-        
-        // Cacher le bouton si tout est révélé
-        document.getElementById('revealBtn').style.display = (revealedCount < player.career.length) ? "block" : "none";
     }
 
-    function revealNextClub() {
-        if (revealedCount < playersDatabase[currentIdx].career.length) {
-            revealedCount++;
-            currentPoints -= 2;
-            updateUI();
-        }
+    const input = document.getElementById('playerInput');
+    const suggs = document.getElementById('suggDisplay');
+
+    function cleanStr(str) {
+        return str.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
     }
 
-    function showHint() {
-        document.getElementById('message').innerHTML = `<span style="color:#f4b400">📍 Nation : ${playersDatabase[currentIdx].nation}</span>`;
-        currentPoints -= 3;
-        document.getElementById('pointsVal').innerText = currentPoints;
-    }
+    input.addEventListener('input', (e) => {
+        if(!gameActive) return;
+        const val = cleanStr(e.target.value);
+        if(val === cleanStr(currentPlayer.name)) { winPlayer(); return; }
 
-    const input = document.getElementById('userInput');
-    const suggBox = document.getElementById('suggestions');
-
-    input.addEventListener('input', () => {
-        const val = input.value.toLowerCase();
-        suggBox.innerHTML = '';
-        if (val.length < 2) return;
-
-        const matches = playersDatabase.filter(p => p.name.toLowerCase().includes(val));
-        matches.forEach(m => {
-            const div = document.createElement('div');
-            div.className = 'suggestion-item';
-            div.innerText = m.name;
-            div.onclick = () => {
-                input.value = m.name;
-                suggBox.innerHTML = '';
-                checkAnswer();
-            };
-            suggBox.appendChild(div);
-        });
+        suggs.innerHTML = '';
+        if(val.length >= 2) {
+            const matches = players.filter(p => cleanStr(p.name).includes(val)).slice(0, 4);
+            if(matches.length > 0) {
+                suggs.style.display = 'block';
+                matches.forEach(m => {
+                    const d = document.createElement('div');
+                    d.className = 'sugg-item'; d.innerText = m.name;
+                    d.onclick = () => { input.value = m.name; suggs.style.display = 'none'; winPlayer(); };
+                    suggs.appendChild(d);
+                });
+            } else { suggs.style.display = 'none'; }
+        } else { suggs.style.display = 'none'; }
     });
 
-    function checkAnswer() {
-        if (input.value.toLowerCase().trim() === playersDatabase[currentIdx].name.toLowerCase()) {
-            document.getElementById('message').innerHTML = "✅ BUUUUT ! +" + currentPoints + " pts";
-            document.getElementById('message').style.color = "#64ffda";
-            score += currentPoints;
-            document.getElementById('scoreVal').innerText = score;
-            setTimeout(initGame, 2000);
+    function winPlayer() {
+        totalScore += pointsPerPlayer;
+        document.getElementById('msg').innerText = "✅ BIEN JOUÉ !";
+        document.getElementById('msg').style.color = "var(--neon)";
+        suggs.style.display = 'none';
+        setTimeout(nextPlayer, 500);
+    }
+
+    function skipPlayer() {
+        if(!gameActive) return;
+        document.getElementById('msg').innerText = "❌ C'ÉTAIT : " + currentPlayer.name.toUpperCase();
+        document.getElementById('msg').style.color = "var(--red)";
+        suggs.style.display = 'none';
+        setTimeout(nextPlayer, 1500); // 1.5s pour voir le nom avant de passer
+    }
+
+    function revealClub() {
+        if(!gameActive) return;
+        if(revealedClubs < currentPlayer.career.length) {
+            revealedClubs++; pointsPerPlayer = Math.max(1, pointsPerPlayer - 2);
+            updateDisplay();
         }
     }
 
-    window.onload = initGame;
+    function showNation() {
+        if(!gameActive) return;
+        document.getElementById('msg').innerText = "📍 " + currentPlayer.nation;
+        document.getElementById('msg').style.color = "#f4b400";
+        pointsPerPlayer = Math.max(1, pointsPerPlayer - 3);
+        document.getElementById('currentPts').innerText = pointsPerPlayer;
+    }
 </script>
-
 </body>
 </html>
